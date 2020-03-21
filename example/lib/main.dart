@@ -6,6 +6,8 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:flutter_beacon/flutter_beacon.dart';
 
+import 'auth.dart';
+
 void main() {
   runApp(MyApp());
 }
@@ -30,6 +32,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
 
     super.initState();
+
+    print("----------------TEST------------------");
 
     listeningState();
   }
@@ -72,28 +76,29 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }
 
   initScanBeacon() async {
-    await flutterBeacon.initializeScanning;
+    print("initScanBeacon");
+    print('authorizationStatusOk=$authorizationStatusOk, '
+        'locationServiceEnabled=$locationServiceEnabled, '
+        'bluetoothEnabled=$bluetoothEnabled');
+    flutterBeacon.initializeScanning;
     await checkAllRequirements();
-    if (!authorizationStatusOk ||
-        !locationServiceEnabled ||
-        !bluetoothEnabled) {
-      print('RETURNED, authorizationStatusOk=$authorizationStatusOk, '
-          'locationServiceEnabled=$locationServiceEnabled, '
-          'bluetoothEnabled=$bluetoothEnabled');
-      return;
-    }
+
     final regions = <Region>[
       Region(
-        identifier: 'Cubeacon',
-        proximityUUID: 'CB10023F-A318-3394-4199-A8730C7C1AEC',
+        identifier: 'testbeacon',
+        proximityUUID: '5A5EA2C9-8E7A-435D-901F-FBD52767DD60',
       ),
     ];
 
     if (_streamRanging != null) {
+      print("_streamRanging isn't NULL");
       if (_streamRanging.isPaused) {
+        print("_streamRanging resume()");
         _streamRanging.resume();
         return;
       }
+    } else {
+      print("_streamRanging is NULL");
     }
 
     _streamRanging =
@@ -133,6 +138,25 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     }
 
     return compare;
+  }
+
+  Future _showAlertDialog(BuildContext context) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('出勤完了'),
+          content: Text('出勤完了しました'),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('OK'),
+              onPressed: () => Navigator.pop(context)
+            )
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -245,32 +269,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         ),
         body: _beacons == null || _beacons.isEmpty
             ? Center(child: CircularProgressIndicator())
-            : ListView(
-                children: ListTile.divideTiles(
-                    context: context,
-                    tiles: _beacons.map((beacon) {
-                      return ListTile(
-                        title: Text(beacon.proximityUUID),
-                        subtitle: new Row(
-                          mainAxisSize: MainAxisSize.max,
-                          children: <Widget>[
-                            Flexible(
-                                child: Text(
-                                    'Major: ${beacon.major}\nMinor: ${beacon.minor}',
-                                    style: TextStyle(fontSize: 13.0)),
-                                flex: 1,
-                                fit: FlexFit.tight),
-                            Flexible(
-                                child: Text(
-                                    'Accuracy: ${beacon.accuracy}m\nRSSI: ${beacon.rssi}',
-                                    style: TextStyle(fontSize: 13.0)),
-                                flex: 2,
-                                fit: FlexFit.tight)
-                          ],
-                        ),
-                      );
-                    })).toList(),
-              ),
+            : AuthScreen()
       ),
     );
   }
