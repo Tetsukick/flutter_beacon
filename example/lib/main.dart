@@ -140,25 +140,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     return compare;
   }
 
-  Future _showAlertDialog(BuildContext context) async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('出勤完了'),
-          content: Text('出勤完了しました'),
-          actions: <Widget>[
-            FlatButton(
-              child: Text('OK'),
-              onPressed: () => Navigator.pop(context)
-            )
-          ],
-        );
-      },
-    );
-  }
-
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     print('AppLifecycleState = $state');

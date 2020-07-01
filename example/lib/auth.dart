@@ -22,7 +22,7 @@ class _AuthScreenState extends State<AuthScreen> {
     return Center(
       child: RaisedButton(
         child: Text("出勤"),
-        onPressed: () => _authenticate(),
+        onPressed: () => _authenticate(context),
       ),
     );
   }
@@ -39,7 +39,7 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   /// 生体認証実行
-  Future<bool> _authenticate() async {
+  Future<bool> _authenticate(BuildContext context) async {
     bool result = false;
 
     List<BiometricType> availableBiometricTypes = await _getAvailableBiometricTypes();
@@ -48,8 +48,11 @@ class _AuthScreenState extends State<AuthScreen> {
       if (availableBiometricTypes.contains(BiometricType.face) || availableBiometricTypes.contains(BiometricType.fingerprint)) {
         result = await _localAuth.authenticateWithBiometrics(localizedReason: "認証してください");
         if (result) {
-
+          print(result);
+          _showAlertDialog(context);
         }
+      } else {
+        _showAlertDialog(context);
       }
     } on PlatformException catch (e) {
       // TODO
@@ -60,6 +63,25 @@ class _AuthScreenState extends State<AuthScreen> {
   /// 生体認証可能かどうか
   Future<bool> canCheckBiometrics() async {
     return await _localAuth.canCheckBiometrics;
+  }
+
+  Future _showAlertDialog(BuildContext context) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('出勤完了'),
+          content: Text('出勤完了しました'),
+          actions: <Widget>[
+            FlatButton(
+                child: Text('OK'),
+                onPressed: () => Navigator.pop(context)
+            )
+          ],
+        );
+      },
+    );
   }
 
 }
